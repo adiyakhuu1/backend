@@ -3,37 +3,61 @@ const app = express();
 const fs = require("node:fs");
 const port = 3000;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const findAllContents = () => {
+  const data = fs.readFileSync("data.json");
+  return JSON.parse(data);
+};
+const goBack = (cont) => {
+  const contents = JSON.stringify(cont);
+  return fs.writeFileSync("data.json", contents);
+};
 // create
-app.get("/create", (req, res) => {
-  const name = req.query.name;
+app.post("/create", (req, res) => {
+  // const name = req.params.name;
+  const body = req.body;
   const data = fs.readFileSync("data.json");
   const content = JSON.parse(data);
-  content.push({ id: Date.now(), name });
-  const contentJSON = JSON.stringify(content);
-  fs.writeFileSync("data.json", contentJSON);
-  res.send("done");
+  content.push({ id: Date.now(), ...body });
+  goBack(content);
+  console.log(req.body);
+  res.send("hi");
 });
 
 // read
 app.get("/", (req, res) => {
-  const data = fs.readFileSync("data.json");
-  const content = JSON.parse(data);
+  const content = findAllContents();
   console.log(content);
-  res.send(content);
+  res.send(req.body);
 });
 
-// update
-app.get("/update", (req, res) => {
-  const deezId = req.query.deezId;
-  const deezName = req.query.deezName;
-  const data = fs.readFileSync("data.json");
-  const content = JSON.parse(data);
+// find one
+const findOne = (req, res) => {
+  const { deezId } = req.body;
+  const content = findAllContents();
+  const movie = content.find((movie) => movie.id === deezId);
+  console.log(typeof deezId);
+  res.send(movie);
+};
+app.get("/details/:id", findOne);
 
+// update
+app.put("/update/deezId", (req, res) => {
+  const body = req.body;
+  // const  = req.query.deezName;
+  const content = findAllContents();
+  const isFound = content.find((movie) => movie.id == body.id);
+  if (!isFound) {
+    return res.send("Movie not found");
+  }
   const movies = content.map((movie) => {
-    if (movie.id == deezId) {
+    if (movie.id == body.id) {
       const edit = {
         ...movie,
-        name: deezName,
+        ...body,
+        name: body.name,
       };
       return edit;
     } else {
@@ -41,40 +65,30 @@ app.get("/update", (req, res) => {
     }
   });
   console.log(movies);
-
-  const moviesJSON = JSON.stringify(movies);
-  fs.writeFileSync("data.json", moviesJSON);
+  goBack(movies);
   res.send("done");
 });
 
 // delete
-app.get("/delete", (req, res) => {
-  const deezId = req.query.chosenId;
-  const data = fs.readFileSync("data.json");
-  const content = JSON.parse(data);
+app.delete("/delete/:id", (req, res) => {
+  const { id } = req.body;
+  const content = findAllContents();
 
   const movies = content.filter((movie) => {
-    if (movie.id == deezId) {
+    if (movie.id == id) {
       return;
     } else {
       return movie;
     }
   });
 
-  const moviesJSON = JSON.stringify(movies);
-  fs.writeFileSync("data.json", moviesJSON);
+  goBack(movies);
   res.send("done nuts");
 });
 
 app.listen(port, () => {
   console.log(`read---------- http://localhost:3000/`);
-  console.log(
-    `create---------- http://localhost:3000/create?name=randomName${Math.floor(
-      Math.random() * 100000
-    )}`
-  );
-  console.log(
-    `update------------- http://localhost:3000/update?deezId=&deezName=`
-  );
-  console.log(`delte-------------- http://localhost:3000/delete?chosenId=`);
+  console.log(`create---------- http://localhost:3000/create/deezname`);
+  console.log(`update------------- http://localhost:3000/update/deezId`);
+  console.log(`delte-------------- http://localhost:3000/delete/deletedeez`);
 });
