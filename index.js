@@ -4,7 +4,6 @@ const fs = require("node:fs");
 const port = 3000;
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 const findAllContents = () => {
   const data = fs.readFileSync("data.json");
