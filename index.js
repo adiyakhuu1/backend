@@ -1,9 +1,10 @@
 const express = require("express");
 const app = express();
 const fs = require("node:fs");
-const port = 3000;
-
+const port = 4000;
+const cors = require("cors");
 app.use(express.json());
+app.use(cors());
 
 const findAllContents = () => {
   const data = fs.readFileSync("data.json");
@@ -16,34 +17,39 @@ const goBack = (cont) => {
 // create
 app.post("/create", (req, res) => {
   // const name = req.params.name;
+
+  console.log(req.body);
   const body = req.body;
   const data = fs.readFileSync("data.json");
   const content = JSON.parse(data);
-  content.push({ id: Date.now(), ...body });
+  content.push({ ...body, id: Date.now() });
   goBack(content);
   console.log(req.body);
-  res.send("hi");
+  res.send(content);
 });
 
 // read
 app.get("/", (req, res) => {
   const content = findAllContents();
   console.log(content);
-  res.send(req.body);
+  res.send(content);
 });
 
 // find one
 const findOne = (req, res) => {
-  const { deezId } = req.body;
+  const { id } = req.params;
+  if (!id) {
+    return res.send("not found");
+  }
   const content = findAllContents();
-  const movie = content.find((movie) => movie.id === deezId);
-  console.log(typeof deezId);
+  const movie = content.find((movie) => movie.id == id);
+  console.log(typeof id);
   res.send(movie);
 };
 app.get("/details/:id", findOne);
 
 // update
-app.put("/update/deezId", (req, res) => {
+app.put("/update", (req, res) => {
   const body = req.body;
   // const  = req.query.deezName;
   const content = findAllContents();
@@ -51,6 +57,7 @@ app.put("/update/deezId", (req, res) => {
   if (!isFound) {
     return res.send("Movie not found");
   }
+  ``;
   const movies = content.map((movie) => {
     if (movie.id == body.id) {
       const edit = {
@@ -65,11 +72,11 @@ app.put("/update/deezId", (req, res) => {
   });
   console.log(movies);
   goBack(movies);
-  res.send("done");
+  res.send(movies);
 });
 
 // delete
-app.delete("/delete/:id", (req, res) => {
+app.delete("/delete", (req, res) => {
   const { id } = req.body;
   const content = findAllContents();
 
@@ -82,12 +89,12 @@ app.delete("/delete/:id", (req, res) => {
   });
 
   goBack(movies);
-  res.send("done nuts");
+  res.send(movies);
 });
 
 app.listen(port, () => {
-  console.log(`read---------- http://localhost:3000/`);
-  console.log(`create---------- http://localhost:3000/create/deezname`);
-  console.log(`update------------- http://localhost:3000/update/deezId`);
-  console.log(`delte-------------- http://localhost:3000/delete/deletedeez`);
+  console.log(`read---------- http://localhost:${port}/`);
+  console.log(`create---------- http://localhost:${port}/create/deezname`);
+  console.log(`update------------- http://localhost:${port}/update/deezId`);
+  console.log(`delte-------------- http://localhost:${port}/delete/deletedeez`);
 });
