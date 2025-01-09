@@ -20,8 +20,8 @@ app.post("/create", (req, res) => {
 
   console.log(req.body);
   const body = req.body;
-  const data = fs.readFileSync("data.json");
-  const content = JSON.parse(data);
+
+  const content = findAllContents();
   content.push({ ...body, id: Date.now() });
   goBack(content);
   console.log(req.body);
@@ -31,6 +31,10 @@ app.post("/create", (req, res) => {
 // read
 app.get("/", (req, res) => {
   const content = findAllContents();
+  if (!content) {
+    res.json({ message: "not found!" });
+  }
+
   console.log(content);
   res.send(content);
 });
@@ -57,20 +61,17 @@ app.put("/update", (req, res) => {
   if (!isFound) {
     return res.send("Movie not found");
   }
-  ``;
   const movies = content.map((movie) => {
     if (movie.id == body.id) {
       const edit = {
         ...movie,
         ...body,
-        name: body.name,
       };
       return edit;
     } else {
       return movie;
     }
   });
-  console.log(movies);
   goBack(movies);
   res.send(movies);
 });
@@ -87,7 +88,6 @@ app.delete("/delete", (req, res) => {
       return movie;
     }
   });
-
   goBack(movies);
   res.send(movies);
 });
