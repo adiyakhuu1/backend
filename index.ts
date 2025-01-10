@@ -1,16 +1,23 @@
-const express = require("express");
-const app = express();
+// const express = require("express");
+import express, { Express, Response, Request } from "express";
+// import  from "express";
+// const express, {RE}
+const app: Express = express();
 const fs = require("node:fs");
 const port = 4000;
 const cors = require("cors");
 app.use(express.json());
 app.use(cors());
-
+type movie = {
+  name: string;
+  id: number;
+  rating: number;
+};
 const findAllContents = () => {
   const data = fs.readFileSync("data.json");
   return JSON.parse(data);
 };
-const goBack = (cont) => {
+const goBack = (cont: movie) => {
   const contents = JSON.stringify(cont);
   return fs.writeFileSync("data.json", contents);
 };
@@ -29,7 +36,7 @@ app.post("/create", (req, res) => {
 });
 
 // read
-app.get("/", (req, res) => {
+app.get("/", (req: Request, res: Response) => {
   const content = findAllContents();
   if (!content) {
     res.json({ message: "not found!" });
@@ -40,28 +47,30 @@ app.get("/", (req, res) => {
 });
 
 // find one
-const findOne = (req, res) => {
+
+app.get("/details/:id", (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id) {
-    return res.send("not found");
+    res.send("not found");
+    return;
   }
   const content = findAllContents();
-  const movie = content.find((movie) => movie.id == id);
+  const movie = content.find((movie: movie) => movie.id == Number(id));
   console.log(typeof id);
   res.send(movie);
-};
-app.get("/details/:id", findOne);
+});
 
 // update
 app.put("/update", (req, res) => {
   const body = req.body;
   // const  = req.query.deezName;
   const content = findAllContents();
-  const isFound = content.find((movie) => movie.id == body.id);
+  const isFound = content.find((movie: movie) => movie.id == body.id);
   if (!isFound) {
-    return res.send("Movie not found");
+    res.send("Movie not found");
+    return;
   }
-  const movies = content.map((movie) => {
+  const movies = content.map((movie: movie) => {
     if (movie.id == body.id) {
       const edit = {
         ...movie,
@@ -77,11 +86,11 @@ app.put("/update", (req, res) => {
 });
 
 // delete
-app.delete("/delete", (req, res) => {
+app.delete("/delete", (req: Request, res: Response) => {
   const { id } = req.body;
   const content = findAllContents();
 
-  const movies = content.filter((movie) => {
+  const movies = content.filter((movie: movie) => {
     if (movie.id == id) {
       return;
     } else {
